@@ -15,22 +15,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth")
 public class AuthController {
-    private final JwtTokenProvider jwtTokenProvider;
+  private final JwtTokenProvider jwtTokenProvider;
 
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody FormLoginRequest formLoginRequest){
-        String accessToken = jwtTokenProvider.createAccessToken(formLoginRequest.loginId());
-        String refreshToken = jwtTokenProvider.createRefreshToken(formLoginRequest.loginId());
-        return ResponseEntity.ok(new FormLoginResponse(accessToken,refreshToken));
-    }
+  @PostMapping("/login")
+  public ResponseEntity<?> login(@RequestBody FormLoginRequest formLoginRequest) {
+    String accessToken = jwtTokenProvider.createAccessToken(formLoginRequest.loginId());
+    String refreshToken = jwtTokenProvider.createRefreshToken(formLoginRequest.loginId());
+    return ResponseEntity.ok(new FormLoginResponse(accessToken, refreshToken));
+  }
 
-    @PostMapping("/refresh")
-    public ResponseEntity<?> refresh(@RequestBody JwtRefreshRequest jwtRefreshRequest){
-        if(jwtTokenProvider.validateToken(jwtRefreshRequest.refreshToken())){
-            String username = jwtTokenProvider.getUsername(jwtRefreshRequest.refreshToken());
-            String newAcessToken = jwtTokenProvider.createAccessToken(username);
-            return ResponseEntity.ok(new JwtRefreshResponse(newAcessToken, jwtRefreshRequest.refreshToken()));
-        }
-        return ResponseEntity.status(401).body("Invalid refresh token");
+  @PostMapping("/refresh")
+  public ResponseEntity<?> refresh(@RequestBody JwtRefreshRequest jwtRefreshRequest) {
+    if (jwtTokenProvider.validateToken(jwtRefreshRequest.refreshToken())) {
+      String username = jwtTokenProvider.getUsername(jwtRefreshRequest.refreshToken());
+      String newAcessToken = jwtTokenProvider.createAccessToken(username);
+      return ResponseEntity.ok(
+          new JwtRefreshResponse(newAcessToken, jwtRefreshRequest.refreshToken()));
     }
+    return ResponseEntity.status(401).body("Invalid refresh token");
+  }
 }

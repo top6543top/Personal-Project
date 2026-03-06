@@ -10,38 +10,40 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+  private final JwtTokenProvider jwtTokenProvider;
+  private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http.httpBasic(basic -> basic.disable())
+        .csrf(csrf -> csrf.disable())
+        .authorizeHttpRequests(
+            auth ->
+                auth.requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/projects")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
+        .exceptionHandling(
+            exception -> exception.authenticationEntryPoint(jwtAuthenticationEntryPoint))
+        .addFilterBefore(
+            new JwtAuthenticationFilter(jwtTokenProvider),
+            UsernamePasswordAuthenticationFilter.class)
+        .sessionManagement(
+            session ->
+                session.sessionCreationPolicy(
+                    org.springframework.security.config.http.SessionCreationPolicy.STATELESS));
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .httpBasic(basic -> basic.disable())
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/api/v1/projects").permitAll()
-                                .anyRequest().authenticated()
-                )
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                )
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
-                );
+    return http.build();
+  }
 
-        return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 }
