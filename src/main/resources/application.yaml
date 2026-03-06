@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: practice
+
+jwt:
+  secret: v3ryS3cr3tK3yTh@tN33dsT0B3L0ng3rTh@n256B1tsF0rHS512Algorithm!!!
+  access:
+    expiration: 1800000
+  refresh:
+    expiration: 1209600000
